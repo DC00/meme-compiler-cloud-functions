@@ -3,10 +3,12 @@ package normalize
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
 
+	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/cloudevents/sdk-go/v2/event"
 )
@@ -31,15 +33,37 @@ func normalizeVideo(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("event.DataAs: %v", err)
 	}
 
-	inputURI := fmt.Sprintf("gs://%s/%s", data.Bucket, data.Name)
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Printf("Error creating storage client: %v", err)
+		return fmt.Errorf("storage.NewClient: %v", err)
+	}
+	defer client.Close()
+
+	inputBucket := client.Bucket(data.Bucket)
+	inputObject := inputBucket.Object(data.Name)
+
 	inputFilePath := fmt.Sprintf("/tmp/%s", data.Name)
 	outputFilePath := fmt.Sprintf("/tmp/normalized-%s", data.Name)
 
-	// Download the input file from Cloud Storage using gsutil
-	gsutilDownloadCmd := exec.Command("gsutil", "cp", inputURI, inputFilePath)
-	if err := gsutilDownloadCmd.Run(); err != nil {
+	// Download the input file from Cloud Storage
+	inputFile, err := os.Create(inputFilePath)
+	if err != nil {
+		log.Printf("Error creating input file: %v", err)
+		return fmt.Errorf("os.Create: %v", err)
+	}
+	defer inputFile.Close()
+
+	reader, err := inputObject.NewReader(ctx)
+	if err != nil {
+		log.Printf("Error reading input object: %v", err)
+		return fmt.Errorf("inputObject.NewReader: %v", err)
+	}
+	defer reader.Close()
+
+	if _, err := io.Copy(inputFile, reader); err != nil {
 		log.Printf("Error downloading input file: %v", err)
-		return fmt.Errorf("gsutilDownloadCmd.Run: %v", err)
+		return fmt.Errorf("io.Copy: %v", err)
 	}
 
 	// Normalize the video using FFmpeg
@@ -55,18 +79,31 @@ func normalizeVideo(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("cmd.Run: %v", err)
 	}
 
-	// Upload the normalized video to the new bucket using gsutil
-	gsutilUploadCmd := exec.Command("gsutil", "cp", outputFilePath, fmt.Sprintf("gs://%s/%s", normalizedBucketName, data.Name))
-	if err := gsutilUploadCmd.Run(); err != nil {
+	// Upload the normalized video to the new bucket
+	outputBucket := client.Bucket(normalizedBucketName)
+	outputObject := outputBucket.Object(data.Name)
+
+	outputFile, err := os.Open(outputFilePath)
+	if err != nil {
+		log.Printf("Error opening output file: %v", err)
+		return fmt.Errorf("os.Open: %v", err)
+	}
+	defer outputFile.Close()
+
+	writer := outputObject.NewWriter(ctx)
+	if _, err := io.Copy(writer, outputFile); err != nil {
 		log.Printf("Error uploading normalized video: %v", err)
-		return fmt.Errorf("gsutilUploadCmd.Run: %v", err)
+		return fmt.Errorf("io.Copy: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		log.Printf("Error closing output object writer: %v", err)
+		return fmt.Errorf("writer.Close: %v", err)
 	}
 
-	// Delete the original video file using gsutil
-	gsutilDeleteCmd := exec.Command("gsutil", "rm", inputURI)
-	if err := gsutilDeleteCmd.Run(); err != nil {
+	// Delete the original video file
+	if err := inputObject.Delete(ctx); err != nil {
 		log.Printf("Error deleting original video: %v", err)
-		return fmt.Errorf("gsutilDeleteCmd.Run: %v", err)
+		return fmt.Errorf("inputObject.Delete: %v", err)
 	}
 
 	// Clean up temporary files
