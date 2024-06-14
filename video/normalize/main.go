@@ -32,10 +32,18 @@ func normalizeVideo(ctx context.Context, e event.Event) error {
 	}
 
 	inputURI := fmt.Sprintf("gs://%s/%s", data.Bucket, data.Name)
+	inputFilePath := fmt.Sprintf("/tmp/%s", data.Name)
 	outputFilePath := fmt.Sprintf("/tmp/normalized-%s", data.Name)
 
+	// Download the input file from Cloud Storage using gsutil
+	gsutilDownloadCmd := exec.Command("gsutil", "cp", inputURI, inputFilePath)
+	if err := gsutilDownloadCmd.Run(); err != nil {
+		log.Printf("Error downloading input file: %v", err)
+		return fmt.Errorf("gsutilDownloadCmd.Run: %v", err)
+	}
+
 	// Normalize the video using FFmpeg
-	cmd := exec.Command("ffmpeg", "-i", inputURI,
+	cmd := exec.Command("ffmpeg", "-i", inputFilePath,
 		"-vf", "scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30",
 		"-af", "loudnorm=I=-16:TP=-1.5:LRA=11:print_format=summary,aformat=channel_layouts=stereo",
 		"-c:v", "libx264", "-preset", "veryslow", "-crf", "21", "-pix_fmt", "yuv420p",
@@ -48,10 +56,10 @@ func normalizeVideo(ctx context.Context, e event.Event) error {
 	}
 
 	// Upload the normalized video to the new bucket using gsutil
-	gsutilCopyCmd := exec.Command("gsutil", "cp", outputFilePath, fmt.Sprintf("gs://%s/%s", normalizedBucketName, data.Name))
-	if err := gsutilCopyCmd.Run(); err != nil {
-		log.Printf("Error copying normalized video: %v", err)
-		return fmt.Errorf("gsutilCopyCmd.Run: %v", err)
+	gsutilUploadCmd := exec.Command("gsutil", "cp", outputFilePath, fmt.Sprintf("gs://%s/%s", normalizedBucketName, data.Name))
+	if err := gsutilUploadCmd.Run(); err != nil {
+		log.Printf("Error uploading normalized video: %v", err)
+		return fmt.Errorf("gsutilUploadCmd.Run: %v", err)
 	}
 
 	// Delete the original video file using gsutil
@@ -61,7 +69,8 @@ func normalizeVideo(ctx context.Context, e event.Event) error {
 		return fmt.Errorf("gsutilDeleteCmd.Run: %v", err)
 	}
 
-	// Clean up temporary output file
+	// Clean up temporary files
+	os.Remove(inputFilePath)
 	os.Remove(outputFilePath)
 
 	log.Printf("Video normalized and uploaded to bucket: %s", normalizedBucketName)
