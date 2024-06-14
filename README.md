@@ -27,7 +27,12 @@ Steps needed to configure publishing to Google Artifact Registry. Guided link [h
 - Create new registry
 - `gcloud auth login`
 - Configure gcloud: `gcloud auth configure-docker us-east4-docker.pkg.dev`
-- Tag the container
+
+Build the container
+```
+docker build --label=mylabel -t mcf-download .
+```
+Tag the container
 ```
 docker tag \
     <local-container-name> \
