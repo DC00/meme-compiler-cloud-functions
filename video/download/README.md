@@ -1,6 +1,8 @@
 # Download
 
-Downloads a video using yt-dlp and uploads to a Google Cloud Storage bucket.
+**Cloud Run** container which downloads a video using yt-dlp and uploads to a Google Cloud Storage bucket.
+
+Cloud Run containers allow you to add external dependencies in a Dockerfile. I needed to add `yt-dlp` which does not come custom in the included [system packages](https://cloud.google.com/functions/docs/reference/system-packages).
 
 #### YT-DLP Command
 `format=bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]`: Enforce mp4 video and m4a audio, or best available mp4
