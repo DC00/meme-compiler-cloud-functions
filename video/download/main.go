@@ -53,10 +53,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	format := "bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]"
 	outputTemplate := "%(extractor)s-%(id)s.%(ext)s"
 	targetDir := "/tmp"
-	videoFilePath := filepath.Join(targetDir, outputTemplate)
+	videoFileTemplate := filepath.Join(targetDir, outputTemplate)
 
 	// Create the "yt-dlp" command with the specified flags
-	cmd := exec.Command(ytdlpPath, "--format", format, "-o", videoFilePath, "--restrict-filenames", videoURL)
+	cmd := exec.Command(ytdlpPath, "--format", format, "-o", videoFileTemplate, "--restrict-filenames", videoURL)
 
 	// Execute the "yt-dlp" command to download the video
 	output, err := cmd.CombinedOutput()
@@ -64,6 +64,22 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Error downloading video: %s", string(output)), http.StatusInternalServerError)
 		return
 	}
+
+	log.Printf("yt-dlp output: %s", string(output))
+
+	// Find the downloaded MP4 file in the "/tmp" directory
+	files, err := filepath.Glob("/tmp/*.mp4")
+	if err != nil {
+		http.Error(w, "Failed to search for downloaded video file", http.StatusInternalServerError)
+		return
+	}
+
+	if len(files) == 0 {
+		http.Error(w, "No downloaded video file found", http.StatusInternalServerError)
+		return
+	}
+
+	videoFilePath := files[0]
 
 	// Create a new Cloud Storage client
 	ctx := context.Background()
