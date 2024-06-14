@@ -30,7 +30,7 @@ Steps needed to configure publishing to Google Artifact Registry. Guided link [h
 
 Build the container
 ```
-docker build -t mcf-download:1.0.0 .
+docker build -t mcf-download .
 ```
 Tag the container
 ```
