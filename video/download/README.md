@@ -16,3 +16,6 @@ Google Cloud Run can access the storage buckets through Background context:
 ctx := context.Background()
 client, err := storage.NewClient(ctx)
 ```
+
+#### Goroutines and Background Processing
+The Cloud Run container will exit as soon as the HTTP request returns. This means goroutines and background processing will not work because the CPU exits too early. If the [CPU is always on](https://cloud.google.com/run/docs/configuring/cpu-allocation) the backgrounding will work, however the price will increase. Breakeven point with 1 CPU is about 0.7 requests/second (from Claude.ai after feeding in the Tier 1 pricing tables [here](https://cloud.google.com/run/pricing).
