@@ -110,7 +110,7 @@ func stitchVideos(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatalf("Failed to read output file: %v", err)
 	}
-	object := &storage.Object{Name: fmt.Sprintf("compilation_%s.mp4", timestamp)}
+	object := &storage.Object{Name: fmt.Sprintf("compilation-%s.mp4", timestamp)}
 	_, err = storageService.Objects.Insert(compilationsBucket, object).Media(bytes.NewReader(outputFileData)).Do()
 	if err != nil {
 		log.Fatalf("Failed to upload compilation video: %v", err)
