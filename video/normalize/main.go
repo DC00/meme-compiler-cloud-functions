@@ -47,6 +47,7 @@ func normalizeVideo(ctx context.Context, e event.Event) error {
 	outputFilePath := fmt.Sprintf("/tmp/normalized-%s", data.Name)
 
 	// Download the input file from Cloud Storage
+	// Note: gsutil is not available in the Cloud Functions runtime
 	inputFile, err := os.Create(inputFilePath)
 	if err != nil {
 		log.Printf("Error creating input file: %v", err)
