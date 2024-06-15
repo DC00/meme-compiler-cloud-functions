@@ -115,6 +115,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Delete the temporary video file from the container
+	err = os.Remove(videoFilePath)
+	if err != nil {
+		log.Printf("Failed to delete temporary video file: %s", err)
+	}
+
 	// Send a response back to the client
 	fmt.Fprintf(w, "Video downloaded and uploaded to Cloud Storage bucket: %s", bucketName)
 }
