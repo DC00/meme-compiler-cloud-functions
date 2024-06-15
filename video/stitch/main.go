@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"google.golang.org/api/storage/v1"
@@ -102,12 +103,14 @@ func stitchVideos(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to run ffmpeg command: %v", err)
 	}
 
-	// Upload the compilation video to the "compilation" bucket
+	timestamp := time.Now().Format("20060102150405") // Format: YYYYMMDDHHmmss
+
+	// Upload the compilation video to the "compilation" bucket with the timestamp in the filename
 	outputFileData, err := os.ReadFile(outputFile)
 	if err != nil {
 		log.Fatalf("Failed to read output file: %v", err)
 	}
-	object := &storage.Object{Name: "compilation.mp4"}
+	object := &storage.Object{Name: fmt.Sprintf("compilation_%s.mp4", timestamp)}
 	_, err = storageService.Objects.Insert(compilationsBucket, object).Media(bytes.NewReader(outputFileData)).Do()
 	if err != nil {
 		log.Fatalf("Failed to upload compilation video: %v", err)
