@@ -1,4 +1,4 @@
-package main
+package stitch
 
 import (
 	"bytes"
@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"google.golang.org/api/storage/v1"
 )
 
@@ -19,25 +20,11 @@ const (
 	compilationsBucket    = "compilations-f714ffc72eaf414ea0f51b18f4678383"
 )
 
-func main() {
-	log.Print("starting server...")
-	http.HandleFunc("/", handler)
-
-	// Determine port for HTTP service.
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-		log.Printf("defaulting to port %s", port)
-	}
-
-	// Start HTTP server.
-	log.Printf("listening on port %s", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.Fatal(err)
-	}
+func init() {
+	functions.HTTP("StitchVideos", stitchVideos)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func stitchVideos(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	storageService, err := storage.NewService(ctx)
 	if err != nil {
