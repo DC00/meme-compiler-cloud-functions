@@ -1,9 +1,8 @@
 # Normalize
 
 **Cloud Function** which runs ffmpeg to normalize the size and audio of a video. Triggered by an Eventarc notification when a new object is written to the GCS bucket.
-Cloud Functions are a lot cheaper than Cloud Run invocations but are limited to packages that are included in the runtime environment.
-FFmpeg is included in the default runtime environment of [Go 1.22](https://cloud.google.com/functions/docs/reference/system-packages)
-You can also pull the default image itself [here](https://cloud.google.com/functions/docs/concepts/execution-environment).
+Cloud Functions are a lot cheaper than Cloud Run invocations but are limited to packages that are included in the runtime environment (FFmpeg [is included](https://cloud.google.com/functions/docs/reference/system-packages)).
+You can also pull the base Go images [here](https://cloud.google.com/functions/docs/concepts/execution-environment).
 ```
 docker pull \
     us-central1-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/go122:go122_20240609_1_22_3_RC00
