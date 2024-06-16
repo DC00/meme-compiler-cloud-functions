@@ -83,23 +83,23 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	// Run ffmpeg command to concatenate the videos together
 
 	// Fast command but may have issues with audio/video sync
-	// cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", videoListFile, "-c", "copy", outputFile)
+	cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", videoListFile, "-c", "copy", outputFile)
 
 	// Slow command but maintains good vid quality
 	// presets: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
-	cmd := exec.Command("ffmpeg",
-		"-f", "concat",
-		"-safe", "0",
-		"-i", videoListFile,
-		"-c:v", "libx264",
-		"-preset", "veryslow",
-		"-crf", "21",
-		"-pix_fmt", "yuv420p",
-		"-c:a", "aac",
-		"-ar", "48000",
-		"-b:a", "384k",
-		outputFile,
-	)
+	// cmd := exec.Command("ffmpeg",
+	// 	"-f", "concat",
+	// 	"-safe", "0",
+	// 	"-i", videoListFile,
+	// 	"-c:v", "libx264",
+	// 	"-preset", "veryslow",
+	// 	"-crf", "21",
+	// 	"-pix_fmt", "yuv420p",
+	// 	"-c:a", "aac",
+	// 	"-ar", "48000",
+	// 	"-b:a", "384k",
+	// 	outputFile,
+	// )
 
 	if err := cmd.Run(); err != nil {
 		log.Fatalf("Failed to run ffmpeg command: %v", err)
