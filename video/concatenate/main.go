@@ -86,6 +86,7 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	// cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", videoListFile, "-c", "copy", outputFile)
 
 	// Slow command but maintains good vid quality
+	// presets: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
 	cmd := exec.Command("ffmpeg",
 		"-f", "concat",
 		"-safe", "0",
