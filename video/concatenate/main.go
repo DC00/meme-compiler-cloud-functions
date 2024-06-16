@@ -22,10 +22,10 @@ const (
 )
 
 func init() {
-	functions.HTTP("StitchVideos", stitchVideos)
+	functions.HTTP("ConcatenateVideos", concatenateVideos)
 }
 
-func stitchVideos(w http.ResponseWriter, r *http.Request) {
+func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	storageService, err := storage.NewService(ctx)
 	if err != nil {
@@ -78,7 +78,7 @@ func stitchVideos(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(file, "file '%s'\n", videoFile)
 	}
 
-	// Run ffmpeg command to stitch the videos together
+	// Run ffmpeg command to concatenate the videos together
 	outputFile := filepath.Join(tempDir, "output.mp4")
 	cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", videoListFile, "-c", "copy", outputFile)
 
