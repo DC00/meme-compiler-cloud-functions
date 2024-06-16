@@ -1,4 +1,4 @@
-module github.com/DC00/meme-compiler-cloud-functions/video/stitch
+module github.com/DC00/meme-compiler-cloud-functions/video/concatenate
 
 go 1.22.4
 

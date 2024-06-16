@@ -1,4 +1,4 @@
-package stitch
+package concatenate
 
 import (
 	"bytes"
