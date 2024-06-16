@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -12,6 +13,10 @@ import (
 
 	"cloud.google.com/go/storage"
 )
+
+type RequestBody struct {
+	URL string `json:"url"`
+}
 
 func main() {
 	log.Print("starting server...")
@@ -32,17 +37,26 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	// Parse the request parameters
-	err := r.ParseForm()
+	// Read the request body
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Failed to parse request parameters", http.StatusBadRequest)
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// Parse the JSON request body
+	var requestBody RequestBody
+	err = json.Unmarshal(body, &requestBody)
+	if err != nil {
+		http.Error(w, "Failed to parse JSON request body", http.StatusBadRequest)
 		return
 	}
 
-	// Get the value of the "url" parameter
-	videoURL := r.FormValue("url")
+	// Get the value of the "url" field from the request body
+	videoURL := requestBody.URL
 	if videoURL == "" {
-		http.Error(w, "Missing 'url' parameter", http.StatusBadRequest)
+		http.Error(w, "Missing 'url' field in request body", http.StatusBadRequest)
 		return
 	}
 
@@ -113,6 +127,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	if err := writer.Close(); err != nil {
 		http.Error(w, "Failed to close Cloud Storage writer", http.StatusInternalServerError)
 		return
+	}
+
+	// Delete the temporary video file from the container
+	err = os.Remove(videoFilePath)
+	if err != nil {
+		log.Printf("Failed to delete temporary video file: %s", err)
 	}
 
 	// Send a response back to the client

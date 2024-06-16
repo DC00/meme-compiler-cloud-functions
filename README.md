@@ -1,6 +1,6 @@
 # Meme Compiler Cloud Functions
 
-Contains cloud functions for downloading, normalizing, and stitching video files.
+Contains cloud functions for downloading, normalizing, and concatenating video files.
 
 Use Cloud Functions if everything you need is provided in a language's standard library.
 Use Cloud Run if you need external dependencies installed outside of what is provided by Cloud Functions.
