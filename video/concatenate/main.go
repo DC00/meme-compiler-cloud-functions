@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -32,6 +33,28 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Failed to create storage service: %v", err)
 	}
 
+	// Get the minimum number of videos from the environment variable, or use default value of 30
+	minVideosStr := os.Getenv("MIN_VIDEOS")
+	minVideos := 30
+	if minVideosStr != "" {
+		minVideos, err = strconv.Atoi(minVideosStr)
+		if err != nil {
+			log.Fatalf("Invalid MIN_VIDEOS environment variable: %v", err)
+		}
+	}
+
+	// Count the number of videos in the "normalized" bucket
+	objects, err := storageService.Objects.List(normalizedVideoBucket).Do()
+	if err != nil {
+		log.Fatalf("Failed to list objects: %v", err)
+	}
+	videoCount := len(objects.Items)
+
+	if videoCount < minVideos {
+		fmt.Fprintf(w, "Not enough videos to create a compilation. Found %d videos, need at least %d.", videoCount, minVideos)
+		return
+	}
+
 	// Create a temporary directory to store the downloaded videos
 	tempDir, err := os.MkdirTemp("", "normalized-videos")
 	if err != nil {
@@ -40,10 +63,6 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	defer os.RemoveAll(tempDir)
 
 	// Download the videos from the "normalized" bucket
-	objects, err := storageService.Objects.List(normalizedVideoBucket).Do()
-	if err != nil {
-		log.Fatalf("Failed to list objects: %v", err)
-	}
 	var videoFiles []string
 	for _, object := range objects.Items {
 		videoFile := filepath.Join(tempDir, object.Name)
