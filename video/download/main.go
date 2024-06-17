@@ -14,6 +14,10 @@ import (
 	"cloud.google.com/go/storage"
 )
 
+const (
+	bucketName = "videos-quarantine-2486aa1dcdb442fda0c2f090761b4479"
+)
+
 type RequestBody struct {
 	URL string `json:"url"`
 }
@@ -104,8 +108,23 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer client.Close()
 
-	// Set the name of the Cloud Storage bucket
-	bucketName := "videos-quarantine-2486aa1dcdb442fda0c2f090761b4479"
+	// Create a new object handle in the bucket
+	obj := client.Bucket(bucketName).Object(filepath.Base(videoFilePath))
+
+	// Check if the video file already exists in the bucket
+	exists, err := obj.Attrs(ctx)
+	if err == nil && exists != nil {
+		// Video file already exists in the bucket
+		fmt.Fprintf(w, "Video file already exists in the bucket: %s", obj.ObjectName())
+
+		// Delete the temporary video file from the container
+		err = os.Remove(videoFilePath)
+		if err != nil {
+			log.Printf("Failed to delete temporary video file: %s", err)
+		}
+
+		return
+	}
 
 	// Open the downloaded video file
 	videoFile, err := os.Open(videoFilePath)
@@ -114,9 +133,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer videoFile.Close()
-
-	// Create a new object handle in the bucket
-	obj := client.Bucket(bucketName).Object(filepath.Base(videoFilePath))
 
 	// Upload the video file to Cloud Storage
 	writer := obj.NewWriter(ctx)
