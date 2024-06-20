@@ -4,7 +4,6 @@ import (
     "context"
     "encoding/json"
     "fmt"
-    "io/ioutil"
     "log"
     "os"
 
@@ -25,7 +24,7 @@ func main() {
     ctx := context.Background()
 
     // Load client secrets from credentials file
-    b, err := ioutil.ReadFile(credentialsFile)
+    b, err := os.ReadFile(credentialsFile)
     if err != nil {
         log.Fatalf("Unable to read client secret file: %v", err)
     }
