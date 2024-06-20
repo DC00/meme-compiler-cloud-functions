@@ -3,6 +3,7 @@ package concatenate
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -26,11 +27,22 @@ func init() {
 	functions.HTTP("ConcatenateVideos", concatenateVideos)
 }
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+func writeErrorResponse(w http.ResponseWriter, message string, code int) {
+	w.WriteHeader(code)
+	errorResponse := ErrorResponse{Error: message}
+	json.NewEncoder(w).Encode(errorResponse)
+}
+
 func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	storageService, err := storage.NewService(ctx)
 	if err != nil {
-		log.Fatalf("Failed to create storage service: %v", err)
+		writeErrorResponse(w, fmt.Sprintf("Failed to create storage service: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	// Get the minimum number of videos from the environment variable, or use default value of 30
@@ -39,26 +51,29 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	if minVideosStr != "" {
 		minVideos, err = strconv.Atoi(minVideosStr)
 		if err != nil {
-			log.Fatalf("Invalid MIN_VIDEOS environment variable: %v", err)
+			writeErrorResponse(w, fmt.Sprintf("Invalid MIN_VIDEOS environment variable: %v", err), http.StatusBadRequest)
+			return
 		}
 	}
 
 	// Count the number of videos in the "normalized" bucket
 	objects, err := storageService.Objects.List(normalizedVideoBucket).Do()
 	if err != nil {
-		log.Fatalf("Failed to list objects: %v", err)
+		writeErrorResponse(w, fmt.Sprintf("Failed to list objects: %v", err), http.StatusInternalServerError)
+		return
 	}
 	videoCount := len(objects.Items)
 
 	if videoCount < minVideos {
-		fmt.Fprintf(w, "Not enough videos to create a compilation. Found %d videos, need at least %d.", videoCount, minVideos)
+		writeErrorResponse(w, fmt.Sprintf("Not enough videos to create a compilation. Found %d videos, need at least %d.", videoCount, minVideos), http.StatusNoContent)
 		return
 	}
 
 	// Create a temporary directory to store the downloaded videos
 	tempDir, err := os.MkdirTemp("", "normalized-videos")
 	if err != nil {
-		log.Fatalf("Failed to create temporary directory: %v", err)
+		writeErrorResponse(w, fmt.Sprintf("Failed to create temporary directory: %v", err), http.StatusInternalServerError)
+		return
 	}
 	defer os.RemoveAll(tempDir)
 
@@ -68,18 +83,21 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 		videoFile := filepath.Join(tempDir, object.Name)
 		file, err := os.Create(videoFile)
 		if err != nil {
-			log.Fatalf("Failed to create file: %v", err)
+			writeErrorResponse(w, fmt.Sprintf("Failed to create file: %v", err), http.StatusInternalServerError)
+			return
 		}
 		defer file.Close()
 
 		res, err := storageService.Objects.Get(normalizedVideoBucket, object.Name).Download()
 		if err != nil {
-			log.Fatalf("Failed to download object: %v", err)
+			writeErrorResponse(w, fmt.Sprintf("Failed to download object: %v", err), http.StatusInternalServerError)
+			return
 		}
 		defer res.Body.Close()
 
 		if _, err := io.Copy(file, res.Body); err != nil {
-			log.Fatalf("Failed to copy video: %v", err)
+			writeErrorResponse(w, fmt.Sprintf("Failed to copy video: %v", err), http.StatusInternalServerError)
+			return
 		}
 
 		videoFiles = append(videoFiles, videoFile)
@@ -89,7 +107,8 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	videoListFile := filepath.Join(tempDir, "videos-for-ffmpeg.txt")
 	file, err := os.Create(videoListFile)
 	if err != nil {
-		log.Fatalf("Failed to create video list file: %v", err)
+		writeErrorResponse(w, fmt.Sprintf("Failed to create video list file: %v", err), http.StatusInternalServerError)
+		return
 	}
 	defer file.Close()
 
@@ -100,28 +119,10 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	outputFile := filepath.Join(tempDir, "output.mp4")
 
 	// Run ffmpeg command to concatenate the videos together
-
-	// Fast command but may have issues with audio/video sync
 	cmd := exec.Command("ffmpeg", "-f", "concat", "-safe", "0", "-i", videoListFile, "-c", "copy", outputFile)
-
-	// Slow command but maintains good vid quality
-	// presets: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
-	// cmd := exec.Command("ffmpeg",
-	// 	"-f", "concat",
-	// 	"-safe", "0",
-	// 	"-i", videoListFile,
-	// 	"-c:v", "libx264",
-	// 	"-preset", "veryslow",
-	// 	"-crf", "21",
-	// 	"-pix_fmt", "yuv420p",
-	// 	"-c:a", "aac",
-	// 	"-ar", "48000",
-	// 	"-b:a", "384k",
-	// 	outputFile,
-	// )
-
 	if err := cmd.Run(); err != nil {
-		log.Fatalf("Failed to run ffmpeg command: %v", err)
+		writeErrorResponse(w, fmt.Sprintf("Failed to run ffmpeg command: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	timestamp := time.Now().Format("20060102150405") // Format: YYYYMMDDHHmmss
@@ -129,12 +130,14 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 	// Upload the compilation video to the "compilation" bucket with the timestamp in the filename
 	outputFileData, err := os.ReadFile(outputFile)
 	if err != nil {
-		log.Fatalf("Failed to read output file: %v", err)
+		writeErrorResponse(w, fmt.Sprintf("Failed to read output file: %v", err), http.StatusInternalServerError)
+		return
 	}
 	object := &storage.Object{Name: fmt.Sprintf("compilation-%s.mp4", timestamp)}
 	_, err = storageService.Objects.Insert(compilationsBucket, object).Media(bytes.NewReader(outputFileData)).Do()
 	if err != nil {
-		log.Fatalf("Failed to upload compilation video: %v", err)
+		writeErrorResponse(w, fmt.Sprintf("Failed to upload compilation video: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	// Delete the normalized videos from the "normalized" bucket
@@ -145,5 +148,6 @@ func concatenateVideos(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	w.WriteHeader(http.StatusAccepted)
 	fmt.Fprintf(w, "Compilation video created and uploaded successfully.")
 }
