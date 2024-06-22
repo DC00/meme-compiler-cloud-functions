@@ -10,7 +10,7 @@ docker pull \
 docker run -u root -it --rm us-central1-docker.pkg.dev/serverless-runtimes/google-22-full/runtimes/go122:go122_20240609_1_22_3_RC00 /bin/bash
 ```
 
-The Dockerfile is not currently used because we are uploading the code within main.go directly to Google Cloud Functions. The Cloud Functions Framework will wrap and execute the function.
+Not using a Dockerfile because we are uploading the code within main.go directly to Google Cloud Functions. The Cloud Functions Framework will wrap and execute the function.
 
 #### Testing
 
