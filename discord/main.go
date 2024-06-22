@@ -1,24 +1,23 @@
-package discord
+package function
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/DC00/meme-compiler/client"
-	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/bwmarrin/discordgo"
 )
 
-var botToken = os.Getenv("DISCORD_BOT_TOKEN")
+var (
+	identityToken = os.Getenv("IDENTITY_TOKEN")
+)
 
-func init() {
-	functions.HTTP("HandleRequest", handleRequest)
-}
-
-// handleRequest is the entry point for the Cloud Function
-func handleRequest(w http.ResponseWriter, r *http.Request) {
+// HandleRequest is the entry point for the Cloud Function
+func HandleRequest(w http.ResponseWriter, r *http.Request) {
 	var interaction discordgo.Interaction
 	if err := json.NewDecoder(r.Body).Decode(&interaction); err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -33,29 +32,21 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 
 // handleInteraction processes the interaction from Discord
 func handleInteraction(interaction discordgo.Interaction) *discordgo.InteractionResponse {
-	// Example: Respond to a ping command
 	if interaction.Type == discordgo.InteractionApplicationCommand {
-		switch interaction.Data.Name {
-		case "ping":
-			return &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionApplicationCommandResponseData{
-					Content: "Pong!",
-				},
-			}
+		data := interaction.ApplicationCommandData()
+		switch data.Name {
 		case "addvideo":
-			return handleAddVideo(interaction)
+			return handleAddVideo(data)
 		}
 	}
 	return nil
 }
 
 // handleAddVideo processes the add video command
-func handleAddVideo(interaction discordgo.Interaction) *discordgo.InteractionResponse {
-	// Assume the video URL is passed as an option
+func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo.InteractionResponse {
 	var videoURL string
-	for _, option := range interaction.Data.Options {
-		if option.Name == "url" && option.Type == discordgo.ApplicationCommandOptionString {
+	for _, option := range data.Options {
+		if option.Name == "url" {
 			videoURL = option.StringValue()
 			break
 		}
@@ -64,13 +55,13 @@ func handleAddVideo(interaction discordgo.Interaction) *discordgo.InteractionRes
 	if videoURL == "" {
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionApplicationCommandResponseData{
+			Data: &discordgo.InteractionResponseData{
 				Content: "No video URL provided.",
 			},
 		}
 	}
 
-	c := client.NewClient("identityToken") // Replace with appropriate token management
+	c := client.NewClient(identityToken)
 
 	ctx := context.Background()
 	addResp, err := c.Videos.Add(ctx, &client.AddVideoRequest{
@@ -80,7 +71,7 @@ func handleAddVideo(interaction discordgo.Interaction) *discordgo.InteractionRes
 		log.Printf("Error adding video: %v", err)
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionApplicationCommandResponseData{
+			Data: &discordgo.InteractionResponseData{
 				Content: fmt.Sprintf("Error adding video: %v", err),
 			},
 		}
@@ -88,8 +79,8 @@ func handleAddVideo(interaction discordgo.Interaction) *discordgo.InteractionRes
 
 	return &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionApplicationCommandResponseData{
-			Content: fmt.Sprintf("Add video response: %s", addResp.Message),
+		Data: &discordgo.InteractionResponseData{
+			Content: fmt.Sprintf(addResp.Message),
 		},
 	}
 }
