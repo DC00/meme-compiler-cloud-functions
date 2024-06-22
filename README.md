@@ -56,3 +56,4 @@ Pull the image
 docker pull \
     us-east4-docker.pkg.dev/meme-compiler/mc-artifacts/mcf-download:1.0.0
 ```
+
