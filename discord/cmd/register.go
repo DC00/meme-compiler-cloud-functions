@@ -30,6 +30,20 @@ func main() {
     }
     defer dg.Close()
 
+    // Define the ping command
+    pingCommand := &discordgo.ApplicationCommand{
+        Name:        "ping",
+        Description: "Ping the bot to check if it's online",
+    }
+
+    // Register the command
+    registeredCmd, err := dg.ApplicationCommandCreate(dg.State.User.ID, guildID, pingCommand)
+    if err != nil {
+        log.Fatalf("Error creating command: %v", err)
+    }
+
+    log.Printf("Slash command registered successfully: %v", registeredCmd)
+
     // Define the addvideo command
     addVideoCommand := &discordgo.ApplicationCommand{
         Name:        "addvideo",
@@ -45,7 +59,7 @@ func main() {
     }
 
     // Register the command
-    registeredCmd, err := dg.ApplicationCommandCreate(dg.State.User.ID, guildID, addVideoCommand)
+    registeredCmd, err = dg.ApplicationCommandCreate(dg.State.User.ID, guildID, addVideoCommand)
     if err != nil {
         log.Fatalf("Error creating command: %v", err)
     }

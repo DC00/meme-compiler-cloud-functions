@@ -3,6 +3,7 @@
 `register.go` registers a slash command with Discord.
 
 ```
+/ping: Pong
 /addvideo: Add a video to the meme compiler
 ```
 

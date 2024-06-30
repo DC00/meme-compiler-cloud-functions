@@ -35,6 +35,13 @@ func handleInteraction(interaction discordgo.Interaction) *discordgo.Interaction
 	if interaction.Type == discordgo.InteractionApplicationCommand {
 		data := interaction.ApplicationCommandData()
 		switch data.Name {
+		case "ping":
+			return &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Pong!",
+				},
+			}
 		case "addvideo":
 			return handleAddVideo(data)
 		}
