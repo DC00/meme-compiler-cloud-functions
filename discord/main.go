@@ -28,23 +28,29 @@ func init() {
 
 func handleRequest(w http.ResponseWriter, r *http.Request) {
 	if !verifyRequest(r) {
+		log.Println("Invalid request signature")
 		http.Error(w, "Invalid request signature", http.StatusUnauthorized)
 		return
 	}
 
 	var interaction discordgo.Interaction
 	if err := json.NewDecoder(r.Body).Decode(&interaction); err != nil {
+		log.Printf("Failed to decode request body: %v", err)
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("Interaction type: %v", interaction.Type)
+
 	// Handle PING requests
 	if interaction.Type == discordgo.InteractionPing {
+		log.Println("Handling PING request")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"type": 1,
 		})
+		log.Println("Returned PING response with type 1")
 		return
 	}
 
@@ -52,6 +58,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+	log.Println("Returned response for interaction")
 }
 
 func verifyRequest(r *http.Request) bool {
@@ -77,12 +84,17 @@ func verifyRequest(r *http.Request) bool {
 		return false
 	}
 
-	return ed25519.Verify(decodedPubKey, message, decodedSignature)
+	valid := ed25519.Verify(decodedPubKey, message, decodedSignature)
+	if !valid {
+		log.Println("Signature verification failed")
+	}
+	return valid
 }
 
 func handleInteraction(interaction discordgo.Interaction) *discordgo.InteractionResponse {
 	if interaction.Type == discordgo.InteractionApplicationCommand {
 		data := interaction.ApplicationCommandData()
+		log.Printf("Handling command: %v", data.Name)
 		switch data.Name {
 		case "ping":
 			return &discordgo.InteractionResponse{
@@ -108,6 +120,7 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 	}
 
 	if videoURL == "" {
+		log.Println("No video URL provided")
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
@@ -132,6 +145,7 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 		}
 	}
 
+	log.Println("Successfully added video")
 	return &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
