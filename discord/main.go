@@ -38,6 +38,16 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Handle PING requests
+	if interaction.Type == discordgo.InteractionPing {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"type": 1,
+		})
+		return
+	}
+
 	response := handleInteraction(interaction)
 
 	w.Header().Set("Content-Type", "application/json")
