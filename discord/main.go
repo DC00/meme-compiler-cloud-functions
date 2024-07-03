@@ -1,23 +1,37 @@
 package function
 
 import (
+	"bytes"
 	"context"
+	"crypto/ed25519"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/DC00/meme-compiler/client"
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
 	identityToken = os.Getenv("IDENTITY_TOKEN")
+	discordPubKey = os.Getenv("DISCORD_PUBLIC_KEY")
 )
 
-// HandleRequest is the entry point for the Cloud Function
-func HandleRequest(w http.ResponseWriter, r *http.Request) {
+func init() {
+	functions.HTTP("HandleRequest", handleRequest)
+}
+
+func handleRequest(w http.ResponseWriter, r *http.Request) {
+	if !verifyRequest(r) {
+		http.Error(w, "Invalid request signature", http.StatusUnauthorized)
+		return
+	}
+
 	var interaction discordgo.Interaction
 	if err := json.NewDecoder(r.Body).Decode(&interaction); err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
@@ -30,7 +44,32 @@ func HandleRequest(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
-// handleInteraction processes the interaction from Discord
+func verifyRequest(r *http.Request) bool {
+	timestamp := r.Header.Get("X-Signature-Timestamp")
+	signature := r.Header.Get("X-Signature-Ed25519")
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Failed to read request body: %v", err)
+		return false
+	}
+	r.Body = io.NopCloser(bytes.NewBuffer(body)) // Reset the body reader
+
+	decodedPubKey, err := hex.DecodeString(discordPubKey)
+	if err != nil {
+		log.Printf("Failed to decode public key: %v", err)
+		return false
+	}
+
+	message := append([]byte(timestamp), body...)
+	decodedSignature, err := hex.DecodeString(signature)
+	if err != nil {
+		log.Printf("Failed to decode signature: %v", err)
+		return false
+	}
+
+	return ed25519.Verify(decodedPubKey, message, decodedSignature)
+}
+
 func handleInteraction(interaction discordgo.Interaction) *discordgo.InteractionResponse {
 	if interaction.Type == discordgo.InteractionApplicationCommand {
 		data := interaction.ApplicationCommandData()
@@ -49,7 +88,6 @@ func handleInteraction(interaction discordgo.Interaction) *discordgo.Interaction
 	return nil
 }
 
-// handleAddVideo processes the add video command
 func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo.InteractionResponse {
 	var videoURL string
 	for _, option := range data.Options {
@@ -87,7 +125,7 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 	return &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
-			Content: fmt.Sprintf(addResp.Message),
+			Content: addResp.Message,
 		},
 	}
 }
