@@ -105,6 +105,8 @@ func handleInteraction(interaction discordgo.Interaction) *discordgo.Interaction
 			}
 		case "addvideo":
 			return handleAddVideo(data)
+		case "createcompilation":
+			return handleCreateCompilation()
 		}
 	}
 	return nil
@@ -150,6 +152,30 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: addResp.Message,
+		},
+	}
+}
+
+func handleCreateCompilation() *discordgo.InteractionResponse {
+	c := client.NewClient(identityToken)
+
+	ctx := context.Background()
+	compResp, err := c.Compilations.Create(ctx, &client.CreateCompilationRequest{})
+	if err != nil {
+		log.Printf("Error creating compilation: %v", err)
+		return &discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: fmt.Sprintf("Error creating compilation: %v", err),
+			},
+		}
+	}
+
+	log.Println("Requested compilation creation")
+	return &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Content: compResp.Message,
 		},
 	}
 }
