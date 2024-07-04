@@ -1,6 +1,6 @@
 # Discord Bot
 
-This is a Discord bot running as a Google Cloud Function which interacts with the Meme Compiler API. Current functionality implements the basic commands:
+This is a Discord bot running as a Google Cloud Function which interacts with the [Meme Compiler API](https://github.com/DC00/meme-compiler). Current functionality implements the basic commands:
 
 ```
 /ping: Pong
@@ -8,15 +8,15 @@ This is a Discord bot running as a Google Cloud Function which interacts with th
 /createcompilation: Creates a meme compilation
 ```
 
-#### Setup
+## Setup
 
 The bot sends messages to an Interaction Endpoint URL which is triggered from the registered slash commands. We have to respond to PING requests as well as per the [documentation](https://discord.com/developers/docs/interactions/overview#setting-up-an-endpoint-acknowledging-ping-requests).
 
-We decrypt Discord's requests with the Discord Public Key and send authenticated requests to the Meme Compiler API with the gcloud Identity Token.
+We decrypt Discord's requests with the Discord Public Key and send authenticated requests to the [Meme Compiler API](https://github.com/DC00/meme-compiler) with the gcloud Identity Token.
 
 **Important Note:** The gcloud Identity Token will change sometimes. I need to investigate when this happens, but if the token does change we need to redeploy the Discord cloud function.
 
-#### Permissions
+## Permissions
 
 - Manage Webhooks
 - Read messages/View Channels

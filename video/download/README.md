@@ -4,19 +4,19 @@
 
 Cloud Run containers allow you to add external dependencies in a Dockerfile. I needed to add `yt-dlp` which does not come custom in the included [system packages](https://cloud.google.com/functions/docs/reference/system-packages).
 
-#### YT-DLP Command
+## YT-DLP Command
 `format=bv*[ext=mp4]+ba[ext=m4a]/b[ext=mp4]`: Enforce mp4 video and m4a audio, or best available mp4
 
 `outputTemplate=%(extractor)s-%(id)s.%(ext)s`: platform-identifier.filetype, e.g. youtube-BaWjenozKc.mp4
 
 The output directory can be appended to the outputTemplate. So `-o /tmp/youtube-BaWjenozKc.mp4` will store the video in the `/tmp` directory.
 
-#### Cloud Storage
+## Cloud Storage
 Google Cloud Run can access the storage buckets through Background context:
 ```
 ctx := context.Background()
 client, err := storage.NewClient(ctx)
 ```
 
-#### Background Processing
+## Background Processing
 The Cloud Run container will exit as soon as the HTTP request returns. This means goroutines and background processing will not work because the HTTP request finishes too early. Google has an option to keep the [CPU always on](https://cloud.google.com/run/docs/configuring/cpu-allocation) which makes backgrounding possible - however the price will increase. The breakeven point for always-on pricing vs request-only pricing with 1 CPU is about 0.7 requests/second (from Claude.ai after feeding in the Tier 1 pricing tables [here](https://cloud.google.com/run/pricing)).
