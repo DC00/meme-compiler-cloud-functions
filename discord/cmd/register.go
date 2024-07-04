@@ -36,10 +36,10 @@ func main() {
         Description: "Ping the bot to check if it's online",
     }
 
-    // Register the command
+    // Register the ping command
     registeredCmd, err := dg.ApplicationCommandCreate(dg.State.User.ID, guildID, pingCommand)
     if err != nil {
-        log.Fatalf("Error creating command: %v", err)
+        log.Fatalf("Error creating ping command: %v", err)
     }
 
     log.Printf("Slash command registered successfully: %v", registeredCmd)
@@ -58,10 +58,24 @@ func main() {
         },
     }
 
-    // Register the command
+    // Register the addvideo command
     registeredCmd, err = dg.ApplicationCommandCreate(dg.State.User.ID, guildID, addVideoCommand)
     if err != nil {
-        log.Fatalf("Error creating command: %v", err)
+        log.Fatalf("Error creating addvideo command: %v", err)
+    }
+
+    log.Printf("Slash command registered successfully: %v", registeredCmd)
+
+    // Define the createcompilation command
+    createCompilationCommand := &discordgo.ApplicationCommand{
+        Name:        "createcompilation",
+        Description: "Create a meme compilation",
+    }
+
+    // Register the createcompilation command
+    registeredCmd, err = dg.ApplicationCommandCreate(dg.State.User.ID, guildID, createCompilationCommand)
+    if err != nil {
+        log.Fatalf("Error creating createcompilation command: %v", err)
     }
 
     log.Printf("Slash command registered successfully: %v", registeredCmd)
