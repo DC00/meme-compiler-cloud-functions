@@ -13,11 +13,6 @@ func main() {
         log.Fatal("No bot token provided. Set the DISCORD_BOT_TOKEN environment variable and try again.")
     }
 
-    guildID := os.Getenv("DISCORD_GUILD_ID")
-    if guildID == "" {
-        log.Fatal("No guild ID provided. Set the DISCORD_GUILD_ID environment variable and try again.")
-    }
-
     dg, err := discordgo.New("Bot " + botToken)
     if err != nil {
         log.Fatalf("Error creating Discord session: %v", err)
@@ -36,13 +31,13 @@ func main() {
         Description: "Ping the bot to check if it's online",
     }
 
-    // Register the ping command
-    registeredCmd, err := dg.ApplicationCommandCreate(dg.State.User.ID, guildID, pingCommand)
+    // Register the ping command globally
+    registeredCmd, err := dg.ApplicationCommandCreate(dg.State.User.ID, "", pingCommand)
     if err != nil {
         log.Fatalf("Error creating ping command: %v", err)
     }
 
-    log.Printf("Slash command registered successfully: %v", registeredCmd)
+    log.Printf("Slash command registered globally: %v", registeredCmd)
 
     // Define the addvideo command
     addVideoCommand := &discordgo.ApplicationCommand{
@@ -58,13 +53,13 @@ func main() {
         },
     }
 
-    // Register the addvideo command
-    registeredCmd, err = dg.ApplicationCommandCreate(dg.State.User.ID, guildID, addVideoCommand)
+    // Register the addvideo command globally
+    registeredCmd, err = dg.ApplicationCommandCreate(dg.State.User.ID, "", addVideoCommand)
     if err != nil {
         log.Fatalf("Error creating addvideo command: %v", err)
     }
 
-    log.Printf("Slash command registered successfully: %v", registeredCmd)
+    log.Printf("Slash command registered globally: %v", registeredCmd)
 
     // Define the createcompilation command
     createCompilationCommand := &discordgo.ApplicationCommand{
@@ -72,11 +67,11 @@ func main() {
         Description: "Create a meme compilation",
     }
 
-    // Register the createcompilation command
-    registeredCmd, err = dg.ApplicationCommandCreate(dg.State.User.ID, guildID, createCompilationCommand)
+    // Register the createcompilation command globally
+    registeredCmd, err = dg.ApplicationCommandCreate(dg.State.User.ID, "", createCompilationCommand)
     if err != nil {
         log.Fatalf("Error creating createcompilation command: %v", err)
     }
 
-    log.Printf("Slash command registered successfully: %v", registeredCmd)
+    log.Printf("Slash command registered globally: %v", registeredCmd)
 }
