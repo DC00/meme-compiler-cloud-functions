@@ -10,7 +10,7 @@ This is a Discord bot running as a Google Cloud Function which interacts with th
 
 #### Setup
 
-The bot reacts to an Interaction Endpoint URL which is triggered from the registered slash commands. We have to respond to PING requests as well as per the [documentation](https://discord.com/developers/docs/interactions/overview#setting-up-an-endpoint-acknowledging-ping-requests).
+The bot sends messages to an Interaction Endpoint URL which is triggered from the registered slash commands. We have to respond to PING requests as well as per the [documentation](https://discord.com/developers/docs/interactions/overview#setting-up-an-endpoint-acknowledging-ping-requests).
 
 We decrypt Discord's requests with the Discord Public Key and send authenticated requests to the Meme Compiler API with the gcloud Identity Token.
 
