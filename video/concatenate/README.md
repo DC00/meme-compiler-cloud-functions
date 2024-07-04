@@ -4,7 +4,7 @@ Combines normalized videos together for a final meme compilation. The Meme Compi
 
 Currently using the cloud storage package to download/upload/remove videos from buckets because the gsutil sdk is not included in Cloud Functions. Cloud Functions are cheaper than Cloud Run invocations so went trying to use them as much as possible.
 
-#### FFmpeg
+## FFmpeg
 There are two approaches for concatenating videos with FFmpeg, copying and reencoding. Reencoding takes much longer because we are reprocessing every video. Copying will just try to attach each video to the end of another. I've seen some issues where the audio gets out of sync with copying, but normalizing each video beforehand should remediate most of the timestamping issues.
 
 ```
