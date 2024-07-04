@@ -1,15 +1,15 @@
 # Discord Slash Command Registration
 
-`register.go` registers a slash command with Discord.
+`register.go` registers global slash commands with Discord.
 
 ```
 /ping: Pong
-/addvideo: Add a video to the meme compiler
+/addvideo [url]: Add a video to the meme compiler
+/createcompilation: Creates a meme compilation
 ```
 
-#### Setup
+#### Installation
 ```
 export DISCORD_BOT_TOKEN=myToken
-export DISCORD_GUILD_ID=<go to server, right click on image, select Copy Server ID>
 go run register.go
 ```
