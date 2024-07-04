@@ -8,7 +8,7 @@
 /createcompilation: Creates a meme compilation
 ```
 
-#### Setup
+#### Installation
 ```
 export DISCORD_BOT_TOKEN=myToken
 go run register.go
