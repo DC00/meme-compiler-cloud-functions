@@ -5,6 +5,7 @@ This is a Discord bot running as a Google Cloud Function which interacts with th
 ```
 /ping: Pong
 /addvideo [url]: Add a video to the meme compiler
+/createcompilation: Creates a meme compilation
 ```
 
 #### Setup
@@ -24,6 +25,6 @@ We decrypt Discord's requests with the Discord Public Key and send authenticated
 - Add Reactions
 - Use Slash Commands
 
-Integer representing these permissions: `277562264640`. To recalculate, see https://discord.com/developers/applications/<bot_id>/bot and select permissions again.
+Integer representing these permissions: `277562264640`. To recalculate, go to https://discord.com/developers/applications/ -> Select Bot -> Bot and select permissions again.
 
 The OAuth invite link will be `https://discord.com/oauth2/authorize?client_id=<client_id>&scope=bot&permissions=277562264640`
