@@ -759,8 +759,10 @@ gioui.org v0.0.0-20210308172011-57750fc8a0a6/go.mod h1:RSH6KIUZ0p2xy5zHDxgAM4zum
 git.sr.ht/~sbinet/gg v0.3.1/go.mod h1:KGYtlADtqsqANL9ueOFkWymvzUvLMQllU5Ixo+8v3pc=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/DC00/meme-compiler/client v0.0.0-20240630052829-b113b6e21446 h1:hxw+6HqSY6fLNeAFmLAlxMTHjaJWZV+KvJc5nSX/+lM=
-github.com/DC00/meme-compiler/client v0.0.0-20240630052829-b113b6e21446/go.mod h1:oNHDz1E58Vwe0qb5EtQDZP7rlXN1k5oJSpNm/7/DsTU=
+github.com/DC00/meme-compiler/client v0.0.0-20240705155548-7e47d2eeed7b h1:9sJtXYUzBXdwQotg3CYwEqdfZr6OzYgyl3cuLvQP/lI=
+github.com/DC00/meme-compiler/client v0.0.0-20240705155548-7e47d2eeed7b/go.mod h1:oNHDz1E58Vwe0qb5EtQDZP7rlXN1k5oJSpNm/7/DsTU=
+github.com/DC00/meme-compiler/client v0.0.0-20240705165054-ac6444f9cb81 h1:oBeX0GdoCfrWW8UEiclOlXy7jveZ9UyQLwW9SMZd424=
+github.com/DC00/meme-compiler/client v0.0.0-20240705165054-ac6444f9cb81/go.mod h1:oNHDz1E58Vwe0qb5EtQDZP7rlXN1k5oJSpNm/7/DsTU=
 github.com/GoogleCloudPlatform/functions-framework-go v1.8.1 h1:wMO6lE8uR68ReG+/XwSgjTm79o4xJ+Aj9pNnCMnQzPk=
 github.com/GoogleCloudPlatform/functions-framework-go v1.8.1/go.mod h1:kKqAKLm08tjDVs37IG/Dl4hC1/go4E85Udn1LeSdAEI=
 github.com/JohnCGriffin/overflow v0.0.0-20211019200055-46fa312c352c/go.mod h1:X0CRv0ky0k6m906ixxpzmDRLvX58TFUKS2eePweuyxk=
