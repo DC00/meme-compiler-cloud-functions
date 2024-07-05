@@ -1,6 +1,6 @@
 module github.com/DC00/meme-compiler-cloud-functions/example
 
-go 1.22.4
+go 1.22.3
 
 require github.com/bwmarrin/discordgo v0.28.1
 

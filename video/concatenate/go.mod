@@ -1,6 +1,6 @@
 module github.com/DC00/meme-compiler-cloud-functions/video/concatenate
 
-go 1.22.4
+go 1.22.3
 
 require (
 	github.com/GoogleCloudPlatform/functions-framework-go v1.8.1
