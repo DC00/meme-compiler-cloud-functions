@@ -3,7 +3,7 @@ module github.com/DC00/meme-compiler-cloud-functions/discord
 go 1.22.4
 
 require (
-	github.com/DC00/meme-compiler/client v1.0.0-beta.6
+	github.com/DC00/meme-compiler/client v0.0.0-20240705170541-ac2a8c3dacd9
 	github.com/GoogleCloudPlatform/functions-framework-go v1.8.1
 	github.com/bwmarrin/discordgo v0.28.1
 )
@@ -20,4 +20,5 @@ require (
 	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/time v0.5.0 // indirect
 )
