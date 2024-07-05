@@ -18,8 +18,9 @@ const (
 	bucketName = "videos-quarantine-2486aa1dcdb442fda0c2f090761b4479"
 )
 
-type RequestBody struct {
-	URL string `json:"url"`
+type Submission struct {
+	URL     string `json:"url"`
+	Webhook string `json:"webhook"`
 }
 
 func main() {
@@ -41,26 +42,11 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	// Read the request body
-	body, err := io.ReadAll(r.Body)
+	// Request is validated in Meme Compiler API. Parse and use URL directly.
+	var submission Submission
+	err := json.NewDecoder(r.Body).Decode(&submission)
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	// Parse the JSON request body
-	var requestBody RequestBody
-	err = json.Unmarshal(body, &requestBody)
-	if err != nil {
-		http.Error(w, "Failed to parse JSON request body", http.StatusBadRequest)
-		return
-	}
-
-	// Get the value of the "url" field from the request body
-	videoURL := requestBody.URL
-	if videoURL == "" {
-		http.Error(w, "Missing 'url' field in request body", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -74,7 +60,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	videoFileTemplate := filepath.Join(targetDir, outputTemplate)
 
 	// Create the "yt-dlp" command with the specified flags
-	cmd := exec.Command(ytdlpPath, "--format", format, "-o", videoFileTemplate, "--restrict-filenames", videoURL)
+	cmd := exec.Command(ytdlpPath, "--format", format, "-o", videoFileTemplate, "--restrict-filenames", submission.URL)
 
 	// Execute the "yt-dlp" command to download the video
 	output, err := cmd.CombinedOutput()
