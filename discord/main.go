@@ -139,10 +139,14 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 	})
 	if err != nil {
 		log.Printf("Error adding video: %v", err)
+		errorMessage := "Error adding video"
+		if addResp != nil {
+			errorMessage = addResp.Message
+		}
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("Error adding video: %v", addResp.Message),
+				Content: fmt.Sprintf("Error adding video: %v", errorMessage),
 			},
 		}
 	}
