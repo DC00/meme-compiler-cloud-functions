@@ -126,7 +126,7 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: "No video URL provided.",
+				Content: "Missing url field. Please submit a url to a video!",
 			},
 		}
 	}
@@ -139,10 +139,14 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 	})
 	if err != nil {
 		log.Printf("Error adding video: %v", err)
+		errorMessage := "Error adding video"
+		if addResp != nil {
+			errorMessage = addResp.Message
+		}
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("Error adding video: %v", err),
+				Content: fmt.Sprintf("Error adding video: %v", errorMessage),
 			},
 		}
 	}
