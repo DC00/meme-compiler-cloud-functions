@@ -3,12 +3,10 @@ module github.com/DC00/meme-compiler-cloud-functions/discord
 go 1.22.4
 
 require (
-	github.com/DC00/meme-compiler/client v0.0.0-20240705165054-ac6444f9cb81
+	github.com/DC00/meme-compiler/client v1.0.0-beta.6
 	github.com/GoogleCloudPlatform/functions-framework-go v1.8.1
 	github.com/bwmarrin/discordgo v0.28.1
 )
-
-replace github.com/DC00/meme-compiler/client => github.com/DC00/meme-compiler/client v0.0.0-20240705165054-ac6444f9cb81
 
 require (
 	github.com/cloudevents/sdk-go/v2 v2.14.0 // indirect
