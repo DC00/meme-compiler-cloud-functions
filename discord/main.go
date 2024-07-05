@@ -121,16 +121,6 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 		}
 	}
 
-	if videoURL == "" {
-		log.Println("No video URL provided")
-		return &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "No video URL provided.",
-			},
-		}
-	}
-
 	c := client.NewClient(identityToken)
 
 	ctx := context.Background()
@@ -142,7 +132,7 @@ func handleAddVideo(data discordgo.ApplicationCommandInteractionData) *discordgo
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("Error adding video: %v", err),
+				Content: fmt.Sprintf(addResp.Message),
 			},
 		}
 	}
@@ -166,7 +156,7 @@ func handleCreateCompilation() *discordgo.InteractionResponse {
 		return &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
-				Content: fmt.Sprintf("Error creating compilation: %v", err),
+				Content: fmt.Sprintf("Error creating compilation: %v", compResp.Message),
 			},
 		}
 	}
