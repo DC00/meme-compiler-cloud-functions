@@ -64,8 +64,21 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	videoFileTemplate := filepath.Join(targetDir, outputTemplate)
 	log.Printf("yt-dlp output template: %s", videoFileTemplate)
 
+	// Fetch proxy credentials from environment variables
+	proxyUser := os.Getenv("PROXY_USER")
+	proxyPassword := os.Getenv("PROXY_PASSWORD")
+	proxyURL := os.Getenv("PROXY_URL")
+
+	if proxyUser == "" || proxyPassword == "" || proxyURL == "" {
+		http.Error(w, "Proxy credentials or URL are not set", http.StatusInternalServerError)
+		log.Print("Proxy credentials or URL are not set")
+		return
+	}
+
+	proxy := fmt.Sprintf("http://%s:%s@%s", proxyUser, proxyPassword, proxyURL)
+
 	// Create the "yt-dlp" command with the specified flags
-	cmd := exec.Command(ytdlpPath, "--format", format, "-o", videoFileTemplate, "--restrict-filenames", submission.URL)
+	cmd := exec.Command(ytdlpPath, "--proxy", proxy, "--format", format, "-o", videoFileTemplate, "--restrict-filenames", "--no-check-certificates", submission.URL)
 
 	// Execute the "yt-dlp" command to download the video
 	output, err := cmd.CombinedOutput()
